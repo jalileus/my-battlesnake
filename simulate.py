@@ -4,7 +4,6 @@ Usage:
     python simulate.py brain_a brain_b 100
 
 Each brain is a Python file in this folder with a choose_move(state) function.
-"brain_v1" also finds "brain-v1.py" (a dash is not allowed in import names).
 """
 
 import importlib.util
