@@ -12,6 +12,7 @@ def info() -> typing.Dict:
         "color": "#3366ff",
         "head": "default",
         "tail": "default",
+        "version": "v3",
     }
 
 
