@@ -9,9 +9,9 @@ def info() -> typing.Dict:
     return {
         "apiversion": "1",
         "author": "jalileus",
-        "color": "#3366ff",
-        "head": "default",
-        "tail": "default",
+        "color": "#f13232",
+        "head": "Evil",
+        "tail": "Bolt",
         "version": "v3",
     }
 
