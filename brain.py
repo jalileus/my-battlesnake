@@ -20,7 +20,7 @@ WEIGHTS = {
     "loss": -1_000_000,  # score for a lost position
     "draw": -500_000,  # both die: better than losing, much worse than surviving
     # Territory
-    "territory": 10,  # per square I reach first (minus squares they reach first)
+    "territory": 6,  # per square I reach first (minus squares they reach first)
     "trapped_me": 5000,  # penalty: my reachable space is smaller than my body
     "trapped_opp": 2000,  # bonus: their reachable space is smaller than their body
     # Food
@@ -31,7 +31,7 @@ WEIGHTS = {
     "starving": 3000,  # penalty: no food reachable before my health runs out
     # Length
     "length": 160,  # per length point I am ahead (within the limits below)
-    "length_max_lead": 2,  # stop rewarding length once I am this much longer
+    "length_max_lead": 4,  # stop rewarding length once I am this much longer
     "length_max_behind": 5,  # stop penalizing length once I am this much shorter
     # Health
     "health_divisor": 10,  # health difference is divided by this (small term)
