@@ -13,10 +13,33 @@ MAX_DEPTH = 40
 
 DIRS = {"up": (0, 1), "down": (0, -1), "left": (-1, 0), "right": (1, 0)}
 
-WIN = 1_000_000
-LOSS = -1_000_000
-DRAW = -500_000  # both die: better than losing, much worse than surviving
-HUNGRY = 40
+# Every tunable number of the evaluation, in one place (tune.py changes these in memory).
+WEIGHTS = {
+    # Game results
+    "win": 1_000_000,  # score for a won position
+    "loss": -1_000_000,  # score for a lost position
+    "draw": -500_000,  # both die: better than losing, much worse than surviving
+    # Territory
+    "territory": 10,  # per square I reach first (minus squares they reach first)
+    "trapped_me": 5000,  # penalty: my reachable space is smaller than my body
+    "trapped_opp": 2000,  # bonus: their reachable space is smaller than their body
+    # Food
+    "hungry": 40,  # below this health, chase food
+    "food_hungry_base": 10,  # food pull when hungry (plus 1 per health point below "hungry")
+    "food_shorter": 6,  # food pull per square when I am shorter than the opponent
+    "no_food_distance": 25,  # distance used when no food is reachable
+    "starving": 3000,  # penalty: no food reachable before my health runs out
+    # Length
+    "length": 160,  # per length point I am ahead (within the limits below)
+    "length_max_lead": 2,  # stop rewarding length once I am this much longer
+    "length_max_behind": 5,  # stop penalizing length once I am this much shorter
+    # Health
+    "health_divisor": 10,  # health difference is divided by this (small term)
+    # Head-to-head
+    "h2h_danger_gap": 2,  # head distance at which an equal/longer snake is dangerous
+    "h2h_danger": 0,  # penalty for being that close to an equal/longer snake
+    "hunt": 8,  # per square of head distance, when I am longer (hunt them down)
+}
 
 
 class OutOfTime(Exception):
@@ -110,17 +133,18 @@ def evaluate(me, opp, food, nb):
     opp_dist = distances(opp_head, blocked, nb)
     my_len, opp_len = len(me[0]), len(opp[0])
     my_health = me[1]
+    W = WEIGHTS
 
     # Voronoi territory: squares I reach first minus squares they reach first.
     mine = sum(1 for sq, d in my_dist.items() if d < opp_dist.get(sq, 999))
     theirs = sum(1 for sq, d in opp_dist.items() if d < my_dist.get(sq, 999))
-    score = (mine - theirs) * 10
+    score = (mine - theirs) * W["territory"]
 
     # Getting boxed into a space smaller than my body is close to death.
     if len(my_dist) < my_len:
-        score -= 5000
+        score -= W["trapped_me"]
     if len(opp_dist) < opp_len:
-        score += 2000
+        score += W["trapped_opp"]
 
     # Food: only chase it when hungry or shorter than the opponent.
     # Aim for food I reach first; if there is none, any food I can reach.
@@ -128,28 +152,30 @@ def evaluate(me, opp, food, nb):
         my_dist[f] for f in food if f in my_dist and my_dist[f] < opp_dist.get(f, 999)
     ] or [my_dist[f] for f in food if f in my_dist]
     nearest = min(food_dists) if food_dists else None
-    if my_health < HUNGRY:
-        weight = 10 + (HUNGRY - my_health)  # the hungrier, the stronger the pull
+    if my_health < W["hungry"]:
+        # the hungrier, the stronger the pull
+        weight = W["food_hungry_base"] + (W["hungry"] - my_health)
     elif my_len < opp_len:
-        weight = 6
+        weight = W["food_shorter"]
     else:
         weight = 0
-    score -= (nearest if nearest is not None else 25) * weight
+    score -= (nearest if nearest is not None else W["no_food_distance"]) * weight
     if nearest is None or nearest > my_health:
-        score -= 3000  # cannot reach food in time
+        score -= W["starving"]  # cannot reach food in time
 
-    # Length: reward growing until I am 2 longer (strictly longer wins head-to-heads).
-    score += max(-5, min(my_len - opp_len, 2)) * 80
+    # Length: reward growing until I am a bit longer (strictly longer wins head-to-heads).
+    lead = max(-W["length_max_behind"], min(my_len - opp_len, W["length_max_lead"]))
+    score += lead * W["length"]
 
     # Small health term: a bit of spare health is nice, but not worth much.
-    score += (my_health - opp[1]) // 10
+    score += (my_health - opp[1]) // W["health_divisor"]
 
     # Head-to-head: if both heads can reach the same square next turn...
     head_gap = abs(my_head[0] - opp_head[0]) + abs(my_head[1] - opp_head[1])
-    if opp_len >= my_len and head_gap <= 2:
-        score -= 400  # ...stay away from an equal or longer snake
+    if opp_len >= my_len and head_gap <= W["h2h_danger_gap"]:
+        score -= W["h2h_danger"]  # ...stay away from an equal or longer snake
     elif my_len > opp_len:
-        score -= head_gap * 8  # ...or hunt a shorter snake down
+        score -= head_gap * W["hunt"]  # ...or hunt a shorter snake down
     return score
 
 
@@ -195,11 +221,11 @@ def search_move(state):
                 )
                 # Earlier wins and later losses are better (depth = plies left).
                 if i_die and they_die:
-                    score = DRAW
+                    score = WEIGHTS["draw"]
                 elif i_die:
-                    score = LOSS - depth
+                    score = WEIGHTS["loss"] - depth
                 elif they_die:
-                    score = WIN + depth
+                    score = WEIGHTS["win"] + depth
                 elif depth == 1:
                     score = evaluate(new_me, new_opp, new_food, nb)
                 else:
@@ -230,7 +256,7 @@ def search_move(state):
             break  # keep the move from the last completed depth
         best_move = my_best[()]
 
-        if abs(score) >= WIN - 1000:
+        if abs(score) >= WEIGHTS["win"] - 1000:
             break  # forced win or loss found: searching deeper changes nothing
         # The next depth takes several times longer; don't start it if it can't finish.
         now = time.perf_counter()
