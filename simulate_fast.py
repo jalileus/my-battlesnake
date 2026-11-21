@@ -1,10 +1,12 @@
 """Parallel version of simulate.py: plays many games at once on several CPU cores.
 
 Usage:
-    python simulate_fast.py brain_a brain_b N [--time MS] [--procs P]
+    python simulate_fast.py brain_a brain_b N [--time MS] [--time-a MS] [--time-b MS] [--procs P]
 
---time MS   thinking time limit for both snakes (default 100, the real limit)
---procs P   number of processes (default: CPU cores minus 2)
+--time MS     thinking time limit for both snakes (default 100, the real limit)
+--time-a MS   time limit for brain_a only (default: --time)
+--time-b MS   time limit for brain_b only (default: --time)
+--procs P     number of processes (default: CPU cores minus 2)
 
 The game engine is imported from simulate.py, so the rules are exactly the same.
 """
@@ -23,12 +25,13 @@ DEFAULT_TIME_MS = 100
 _brains = []  # (label, choose_move) pairs, loaded once per worker process
 
 
-def init_worker(name_a, name_b, label_a, label_b, time_ms):
-    """Runs once in every worker: load both brains and set their time limit."""
+def init_worker(name_a, name_b, label_a, label_b, time_a, time_b):
+    """Runs once in every worker: load both brains and give each its own time limit."""
     sys.path.insert(0, simulate.HERE)  # so brains can import helper files (e.g. brain_v2)
-    for name, label in ((name_a, label_a), (name_b, label_b)):
+    for name, label, time_ms in ((name_a, label_a, time_a), (name_b, label_b, time_b)):
         choose_move = simulate.load_brain(name)
-        # Set the time limit in the brain's own module (in memory, files are not edited).
+        # Each brain is its own module copy (even brain vs brain), so setting the
+        # limit here only affects this snake (in memory, files are not edited).
         if "TIME_LIMIT_MS" in choose_move.__globals__:
             choose_move.__globals__["TIME_LIMIT_MS"] = time_ms
         _brains.append((label, choose_move))
@@ -62,16 +65,23 @@ def read_option(args, flag, default):
 def main():
     args = sys.argv[1:]
     time_ms = read_option(args, "--time", DEFAULT_TIME_MS)
+    time_a = read_option(args, "--time-a", time_ms)
+    time_b = read_option(args, "--time-b", time_ms)
     procs = read_option(args, "--procs", max(1, (os.cpu_count() or 1) - 2))
     if len(args) != 3:
-        sys.exit("Usage: python simulate_fast.py brain_a brain_b N [--time MS] [--procs P]")
+        sys.exit("Usage: python simulate_fast.py brain_a brain_b N "
+                 "[--time MS] [--time-a MS] [--time-b MS] [--procs P]")
     name_a, name_b, n_games = args[0], args[1], int(args[2])
     if name_a == name_b:  # keep the two sides apart in the results
         label_a, label_b = name_a + " (A)", name_b + " (B)"
     else:
         label_a, label_b = name_a, name_b
 
-    print(f"{n_games} games, {time_ms} ms per move, {procs} processes")
+    if time_a == time_b:
+        print(f"{n_games} games, {time_a} ms per move, {procs} processes")
+    else:
+        print(f"{n_games} games, {label_a} {time_a} ms / {label_b} {time_b} ms per move, "
+              f"{procs} processes")
     wins = {label_a: 0, label_b: 0}
     draws = 0
     times = {label_a: [], label_b: []}
@@ -81,7 +91,7 @@ def main():
 
     with multiprocessing.Pool(
         procs, initializer=init_worker,
-        initargs=(name_a, name_b, label_a, label_b, time_ms),
+        initargs=(name_a, name_b, label_a, label_b, time_a, time_b),
     ) as pool:
         for done, (winner, timings) in enumerate(pool.imap_unordered(play_one, tasks), 1):
             if winner is None:
