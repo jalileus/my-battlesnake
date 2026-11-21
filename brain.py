@@ -17,6 +17,7 @@ import time
 TIME_LIMIT_MS = 100  # thinking budget per move (modified manually to 100 for safety will change if arena does not give strong timeouts)
 SAFETY = 0.85  # use at most this part of the budget, the rest is slack
 MAX_DEPTH = 40
+USE_TIEBREAK = False  # True: when every move loses, pick the most hopeful one (see below)
 
 DIRS = {"up": (0, 1), "down": (0, -1), "left": (-1, 0), "right": (1, 0)}
 MOVE_NAMES = tuple(DIRS)  # move number -> name: 0 up, 1 down, 2 left, 3 right
@@ -224,8 +225,10 @@ def evaluate(me, opp, food, bd):
 
 # ---------------------------------------------------------------- search
 
-def search_move(state):
-    """Returns (best move number or None, last completed depth, positions searched)."""
+def search_move(state, root_scores=None):
+    """Returns (best move number or None, last completed depth, positions searched).
+    Debug only: pass a dict as root_scores to also get each root move's exact score.
+    That extra work runs after the search has finished, so it can't change the move."""
     start = time.perf_counter()
     deadline = start + TIME_LIMIT_MS * SAFETY / 1000
     clock = time.perf_counter
@@ -295,14 +298,37 @@ def search_move(state):
         my_best[path] = best_move
         return best
 
-    best_move, completed = None, 0
+    def root_score(my_move, depth):
+        """Exact search score of one of my moves (full window, so nothing is pruned away)."""
+        worst = float("inf")
+        for opp_move in range(4):
+            new_me, new_opp, i_die, they_die, new_food = play_turn(
+                me, opp, my_move, opp_move, food, step
+            )
+            if i_die and they_die:
+                score = draw
+            elif i_die:
+                score = loss - depth
+            elif they_die:
+                score = win + depth
+            elif depth == 1:
+                score = evaluate(new_me, new_opp, new_food, bd)
+            else:
+                score = max_node(
+                    new_me, new_opp, new_food, depth - 1,
+                    float("-inf"), float("inf"), my_move * 4 + opp_move + 1,
+                )
+            worst = min(worst, score)
+        return worst
+
+    best_move, completed, best_score = None, 0, None
     for depth in range(1, MAX_DEPTH + 1):
         depth_start = clock()
         try:
             score = max_node(me, opp, food, depth, float("-inf"), float("inf"), 0)
         except OutOfTime:
             break  # keep the move from the last completed depth
-        best_move, completed = my_best[0], depth
+        best_move, completed, best_score = my_best[0], depth, score
 
         if abs(score) >= win - 1000:
             break  # forced win or loss found: searching deeper changes nothing
@@ -310,7 +336,99 @@ def search_move(state):
         now = clock()
         if now + (now - depth_start) * 3 > deadline:
             break
+
+    # Every move is a proven loss (the best one is): pick the most hopeful one instead.
+    # Skipped when USE_TIEBREAK is False, so the move is the same as brain_v6.
+    if USE_TIEBREAK and completed and best_score <= loss + 1000:
+        try:
+            best_move = choose_among_losses(
+                me, opp, food, bd, best_move, lambda m: root_score(m, completed)
+            )
+        except OutOfTime:
+            pass  # no time left: keep the move that loses latest
+
+    if root_scores is not None and completed:
+        # Debug only: score every one of my moves at the last completed depth, with a
+        # full window (so pruned moves also get an exact score) and no time limit.
+        deadline = float("inf")
+        for my_move, name in enumerate(MOVE_NAMES):
+            root_scores[name] = root_score(my_move, completed)
     return best_move, completed, positions
+
+
+LOSS_TIE_TURNS = 2  # losses this many turns apart (or less) count as equally late
+
+
+def choose_among_losses(me, opp, food, bd, best_move, root_score):
+    """All moves lose against a perfect opponent. Choose, among legal moves:
+    1. the latest loss (losses within LOSS_TIE_TURNS of the latest count as equal),
+    2. then the best normal evaluation one turn ahead (no loss constant),
+    3. then the largest area I can reach after the move."""
+    my_body, opp_body = me[0], opp[0]
+    step = bd.step
+
+    # Squares blocked next turn (a tail moves away unless it just grew).
+    blocked = 0
+    for body in (my_body, opp_body):
+        if len(body) > 1 and body[-1] != body[-2]:
+            body = body[:-1]
+        for sq in body:
+            blocked |= bd.bit[sq]
+
+    # Legal = not into a wall or a body. Keep the current choice first so it wins ties.
+    order = [best_move] + [m for m in range(4) if m != best_move]
+    legal = [m for m in order if step[my_body[0]][m] >= 0
+             and not blocked & bd.bit[step[my_body[0]][m]]]
+    if len(legal) < 2:
+        return best_move
+
+    scores = {m: root_score(m) for m in legal}  # higher = the loss comes later
+    latest = max(scores.values())
+    candidates = [m for m in legal if scores[m] >= latest - LOSS_TIE_TURNS]
+    if len(candidates) < 2:
+        return best_move
+
+    def hope(m):
+        # Normal evaluation after my move, against the opponent's worst reply that
+        # doesn't end the game right away (replies that kill me are ignored here).
+        values = []
+        for opp_move in range(4):
+            new_me, new_opp, i_die, they_die, new_food = play_turn(
+                me, opp, m, opp_move, food, step
+            )
+            if not i_die and not they_die:
+                values.append(evaluate(new_me, new_opp, new_food, bd))
+        value = min(values) if values else float("-inf")
+        return value, reachable_area(step[my_body[0]][m], blocked, bd)
+
+    return max(candidates, key=hope)  # max() keeps the first one on a tie
+
+
+def reachable_area(start, blocked, bd):
+    """Number of free squares reachable from start (start itself not counted)."""
+    w, not_col0, not_last_col = bd.w, bd.not_col0, bd.not_last_col
+    left = bd.full & ~blocked & ~bd.bit[start]
+    front, area = bd.bit[start], 0
+    while front:
+        f = front
+        front = (((f << 1) & not_col0) | ((f >> 1) & not_last_col)
+                 | (f << w) | (f >> w)) & left
+        left ^= front
+        area += front.bit_count()
+    return area
+
+
+def debug_search(state, with_scores=True):
+    """Debug only (used by replay.py, never by choose_move): run the exact search that
+    choose_move runs and report the move, depth reached and each move's score."""
+    scores = {} if with_scores else None
+    move, depth, positions = search_move(state, scores)
+    return {
+        "move": MOVE_NAMES[move] if move is not None else None,
+        "depth": depth,
+        "positions": positions,
+        "scores": scores,
+    }
 
 
 # ---------------------------------------------------------------- debug counters

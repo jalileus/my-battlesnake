@@ -1,5 +1,6 @@
 import typing
 
+import brain
 from brain import choose_move
 from server import run_server
 
@@ -22,6 +23,10 @@ def start(game_state: typing.Dict):
 
 def end(game_state: typing.Dict):
     print("GAME OVER\n")
+    try:
+        brain.print_game_stats(game_state["game"]["id"])
+    except Exception as e:  # debug output must never crash the server
+        print(f"could not print brain stats: {e!r}")
 
 
 def move(game_state: typing.Dict) -> typing.Dict:
