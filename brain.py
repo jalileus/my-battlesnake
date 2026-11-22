@@ -1,7 +1,7 @@
 """Duel brain: iterative-deepening minimax with alpha-beta pruning (speed-optimized v7).
 
 Each ply: I pick a move, the opponent picks the reply that is worst for me,
-then both moves are applied together with the standard Battlesnake rules.
+then both moves are applied  together with the standard Battlesnake rules.
 
 Speed tricks (the moves chosen are exactly the same as brain_v6):
 - squares are numbers and a snake is (body tuple, health, body bitmask)
