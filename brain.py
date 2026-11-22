@@ -14,7 +14,9 @@ Speed tricks (the moves chosen are exactly the same as brain_v6):
 
 import time
 
-TIME_LIMIT_MS = 130  # thinking budget per move (was 100; raised after the v7 speed-up was verified)
+TIME_LIMIT_MS = (
+    130  # thinking budget per move (was 100; raised after the v7 speed-up was verified)
+)
 SAFETY = 0.85  # use at most this part of the budget, the rest is slack
 MAX_DEPTH = 40
 
@@ -59,6 +61,7 @@ class OutOfTime(Exception):
 
 # ---------------------------------------------------------------- board tables
 
+
 class Board:
     """Lookup tables for a w x h board, built once per board size.
     Square of (x, y) = y * stride + x, with stride = w + 1: the extra column on the
@@ -74,13 +77,18 @@ class Board:
         # step[i][m]: the square reached from i with move m, or -1 for a wall.
         self.step = tuple(
             tuple(
-                (i // s + dy) * s + (i % s + dx)
-                if 0 <= i % s + dx < w and 0 <= i // s + dy < h else -1
+                (
+                    (i // s + dy) * s + (i % s + dx)
+                    if 0 <= i % s + dx < w and 0 <= i // s + dy < h
+                    else -1
+                )
                 for dx, dy in DIRS.values()
             )
             for i in range(n)
         )
-        self.full = sum(1 << (y * s + x) for y in range(h) for x in range(w))  # real squares
+        self.full = sum(
+            1 << (y * s + x) for y in range(h) for x in range(w)
+        )  # real squares
 
     def square(self, p):
         return p["y"] * self.stride + p["x"]
@@ -99,6 +107,7 @@ def board_tables(w, h):
 
 # A snake is a tuple (body, health, mask): body is a tuple of squares (head first),
 # mask has one bit per body square. Food is a bitmask of squares.
+
 
 def blocking(body, mask, bit):
     """Squares this snake still blocks next turn: its body minus the tail
@@ -144,6 +153,7 @@ def play_turn(me, opp, my_move, opp_move, food, bd):
 
 # ---------------------------------------------------------------- evaluation
 
+
 def evaluate(me, opp, food, bd):
     """Score a position where both snakes are alive. Higher is better for me."""
     my_body, my_health, my_mask = me
@@ -152,7 +162,9 @@ def evaluate(me, opp, food, bd):
     bit = bd.bit
 
     # Free squares: not blocked by a body (tails move away unless they just grew).
-    free = bd.full & ~(blocking(my_body, my_mask, bit) | blocking(opp_body, opp_mask, bit))
+    free = bd.full & ~(
+        blocking(my_body, my_mask, bit) | blocking(opp_body, opp_mask, bit)
+    )
 
     # Two BFS's at once, one layer (= one distance) per loop, using bitmasks.
     # A square is mine if I reach it while the opponent has not reached it yet
@@ -225,6 +237,7 @@ def evaluate(me, opp, food, bd):
 
 # ---------------------------------------------------------------- search
 
+
 def search_move(state, root_scores=None):
     """Returns (best move number or None, last completed depth, positions searched).
     Debug only: pass a dict as root_scores to also get each root move's exact score.
@@ -260,10 +273,12 @@ def search_move(state, root_scores=None):
 
     def max_node(me, opp, food, depth, alpha, beta, path):
         """Value of this position for me, searching `depth` more plies."""
-        nonlocal positions
+        nonlocal positions, root_found
         my_len, opp_len = len(me[0]), len(opp[0])
         blocked = blocking(me[0], me[2], bit) | blocking(opp[0], opp[2], bit)
-        opp_moves = {}  # opponent move -> move_snake result, worked out once per position
+        opp_moves = (
+            {}
+        )  # opponent move -> move_snake result, worked out once per position
         best, best_move = float("-inf"), None
         for my_move in ORDER[my_best.get(path, 0)]:
             my_head, new_me, my_crash = move_snake(me, my_move, food, blocked, bd)
@@ -296,8 +311,13 @@ def search_move(state, root_scores=None):
                         score = evaluate(new_me, new_opp, new_food, bd)
                     else:
                         score = max_node(
-                            new_me, new_opp, new_food, depth - 1,
-                            alpha, min(beta, worst), path * 17 + my_move * 4 + opp_move + 1,
+                            new_me,
+                            new_opp,
+                            new_food,
+                            depth - 1,
+                            alpha,
+                            min(beta, worst),
+                            path * 17 + my_move * 4 + opp_move + 1,
                         )
                 if score < worst:
                     worst, worst_reply = score, opp_move
@@ -307,6 +327,8 @@ def search_move(state, root_scores=None):
 
             if worst > best:
                 best, best_move = worst, my_move
+                if path == 0:
+                    root_found = my_move  # c02: best fully searched root move so far
             alpha = max(alpha, best)
             if alpha >= beta:
                 break  # the opponent would never let us reach this position
@@ -330,27 +352,36 @@ def search_move(state, root_scores=None):
                 score = evaluate(new_me, new_opp, new_food, bd)
             else:
                 score = max_node(
-                    new_me, new_opp, new_food, depth - 1,
-                    float("-inf"), float("inf"), my_move * 4 + opp_move + 1,
+                    new_me,
+                    new_opp,
+                    new_food,
+                    depth - 1,
+                    float("-inf"),
+                    float("inf"),
+                    my_move * 4 + opp_move + 1,
                 )
             worst = min(worst, score)
         return worst
 
     best_move, completed = None, 0
+    root_found = None
     for depth in range(1, MAX_DEPTH + 1):
-        depth_start = clock()
+        root_found = None
         try:
             score = max_node(me, opp, food, depth, float("-inf"), float("inf"), 0)
         except OutOfTime:
-            break  # keep the move from the last completed depth
+            # c02: the unfinished depth searched the old best move first. If another
+            # move was fully searched after it and scored higher, it is better at this
+            # deeper depth, so play it. Otherwise keep the last completed depth's move.
+            if completed and root_found is not None:
+                best_move = root_found
+            break
         best_move, completed = my_best[0], depth
 
         if abs(score) >= win - 1000:
             break  # forced win or loss found: searching deeper changes nothing
-        # The next depth takes several times longer; don't start it if it can't finish.
-        now = clock()
-        if now + (now - depth_start) * 3 > deadline:
-            break
+        # c01: always try the next depth. If it can't finish before the deadline,
+        # OutOfTime stops it and the last completed depth is kept (no harm, only time).
 
     if root_scores is not None and completed:
         # Debug only: score every one of my moves at the last completed depth, with a
@@ -399,8 +430,10 @@ def print_game_stats(game_id=None, reset=True):
         return None
     depth = sum(STATS[g][1] for g in ids if g in STATS) / moves
     positions = sum(STATS[g][2] for g in ids if g in STATS) / moves
-    print(f"brain stats: {moves} moves, average depth {depth:.2f}, "
-          f"average {positions:.0f} positions searched per move")
+    print(
+        f"brain stats: {moves} moves, average depth {depth:.2f}, "
+        f"average {positions:.0f} positions searched per move"
+    )
     if reset:
         for g in ids:
             STATS.pop(g, None)
@@ -408,6 +441,7 @@ def print_game_stats(game_id=None, reset=True):
 
 
 # ---------------------------------------------------------------- fallback + entry point
+
 
 def fallback_move(state):
     """The older brain_v2 logic, or any move that doesn't hit a wall or body."""
@@ -421,7 +455,11 @@ def fallback_move(state):
         taken = {(b["x"], b["y"]) for s in board["snakes"] for b in s["body"][:-1]}
         for move, (dx, dy) in DIRS.items():
             x, y = head["x"] + dx, head["y"] + dy
-            if 0 <= x < board["width"] and 0 <= y < board["height"] and (x, y) not in taken:
+            if (
+                0 <= x < board["width"]
+                and 0 <= y < board["height"]
+                and (x, y) not in taken
+            ):
                 return move
         return "up"
 

@@ -5,3 +5,5 @@ lost_games_turns
 Dockerfile
 Dockerfile.cpython
 Dockerfile.pypy
+candidates
+pypy_test
