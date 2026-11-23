@@ -1,5 +1,8 @@
 # Cassiopeia: a Battlesnake for Duels
 
+### Author: Alhajali Jalal (Алхажали Жалал)
+### Group: M05-607в
+
 Cassiopeia is a [Battlesnake](https://play.battlesnake.com) built for **Duels**: one
 against one, on an 11x11 board. It decides each move with an **iterative-deepening
 minimax search with alpha-beta pruning**, and it scores positions mainly by
