@@ -11,8 +11,8 @@ def info() -> typing.Dict:
         "apiversion": "1",
         "author": "jalileus",
         "color": "#f13232",
-        "head": "Evil",
-        "tail": "Bolt",
+        "head": "frog",
+        "tail": "cosmic-horror",
         "version": "v9",
     }
 
