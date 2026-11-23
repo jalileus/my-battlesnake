@@ -15,7 +15,7 @@ Speed tricks (the moves chosen are exactly the same as brain_v6):
 import time
 
 TIME_LIMIT_MS = (
-    130  # thinking budget per move (was 100; raised after the v7 speed-up was verified)
+    180  # thinking budget per move (was 100; raised after the v7 speed-up was verified)
 )
 SAFETY = 0.85  # use at most this part of the budget, the rest is slack
 MAX_DEPTH = 40
