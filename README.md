@@ -9,27 +9,27 @@ It was written for a university course assignment.
 
 ## Run it locally
 
-You need **Python 3.12** and the packages in `requirements.txt` (only Flask).
+You need **Python 3.10 or newer** (the code uses `int.bit_count`; tested with 3.11 and 3.12) and the packages in `requirements.txt` (only Flask).
 
-**Windows** (PowerShell, after installing Python 3.12 from [python.org](https://www.python.org/downloads/)):
+**Windows** (PowerShell, after installing Python from [python.org](https://www.python.org/downloads/)):
 
 ```powershell
-py -3.12 -m pip install -r requirements.txt
-py -3.12 main.py
+python -m pip install -r requirements.txt
+python main.py
 ```
 
-**Mac** (Terminal, after installing Python 3.12 from python.org or with Homebrew):
+**Mac** (Terminal, after installing Python from python.org or with Homebrew):
 
 ```sh
-python3.12 -m pip install -r requirements.txt
-python3.12 main.py
+python3 -m pip install -r requirements.txt
+python3 main.py
 ```
 
 The server starts on port 8000 (set the `PORT` environment variable to use another
 port). Open <http://localhost:8000> in a browser and you should see the snake's info:
 
 ```json
-{"apiversion": "1", "author": "jalileus", "color": "#f13232", "head": "Evil", "tail": "Bolt", "version": "v7"}
+{"apiversion": "1", "author": "jalileus", "color": "#f13232", "head": "Evil", "tail": "Bolt", "version": "v9"}
 ```
 
 Battlesnake sends the game to `/start`, `/move` and `/end`. There is also a debug
@@ -46,23 +46,26 @@ that game.
 
 **The search.** `brain.py` holds `choose_move(state)`. On every turn it searches
 1 move ahead, then 2, then 3, and so on, until the time runs out (iterative
-deepening). In each ply, I pick a move and the opponent picks the reply that is
-worst for me (minimax). Branches that cannot change the result are skipped
+deepening). It always tries the next depth, and when time runs out it plays the
+best move found: the last completed depth's move, or a better root move that the
+unfinished depth already proved. In each ply, the snake picks a move and the opponent picks
+the reply that is worst for me (minimax). Branches that cannot change the result are skipped
 (alpha-beta pruning), and the best moves from the previous depth are tried first,
 which makes that pruning work better. If the board does not have exactly two
 snakes, or anything goes wrong, it falls back to the simpler `brain_v2` logic.
 
 **The time limit.** `TIME_LIMIT_MS` at the top of `brain.py` (now 130) is the
-thinking budget per move. The search uses at most 85% of it, and it does not start
-a new depth that probably cannot finish in time. Everything runs on **one CPU
-core** and only uses the Python standard library, so a move is answered well
+thinking budget per move. The search uses at most 85% of it. Everything runs on
+**one CPU core** and only uses the Python standard library, so a move is answered well
 under Battlesnake's 500 ms limit.
 
 **The evaluation.** When the search stops, positions are scored by the
 `WEIGHTS` dictionary in `brain.py`: territory (squares I reach before the
 opponent), being trapped in a space smaller than my body, food (only when hungry
 or shorter), length lead, health, and head-to-head danger or hunting. A win or a
-loss gets a huge score. All the tunable numbers live in `WEIGHTS`, so they can be
+loss gets a huge score. The territory count is time-aware: each body square opens
+up on the turn the tail really leaves it, so bodies that pull back are not counted
+as walls. All the tunable numbers live in `WEIGHTS`, so they can be
 changed in one place.
 
 **Speed.** Squares are numbers and the board is stored as bitmasks (one bit per
@@ -121,6 +124,7 @@ python replay.py lost_games_turns
 | `brain_v5.py` | More tuning: `territory` and `length_max_lead` |
 | `brain_v6.py` | Bitboard speed-up: same moves, about 4.5x faster search |
 | `brain_v7.py` | Further speed-up (same moves as v6, about 1.45x faster) and a 130 ms time limit |
+| `brain_v9.py` | Time-aware territory: the flood fill opens each body square on the turn the tail really leaves it, so tails and bodies that pull back are not counted as walls. Also keeps the best move found by an unfinished deeper search, and always tries the next depth until the time runs out. |
 
 ## Live deployment
 

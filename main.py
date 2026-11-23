@@ -13,7 +13,7 @@ def info() -> typing.Dict:
         "color": "#f13232",
         "head": "Evil",
         "tail": "Bolt",
-        "version": "v8",
+        "version": "v9",
     }
 
 

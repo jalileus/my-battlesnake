@@ -1,0 +1,254 @@
+{
+  "game": {
+    "id": "e4e914f6-95a4-429d-88f8-8211b967e48f",
+    "ruleset": {
+      "name": "standard",
+      "version": "v1.0.0",
+      "settings": {
+        "foodSpawnChance": 15,
+        "minimumFood": 1,
+        "hazardDamagePerTurn": 15,
+        "hazardMap": "",
+        "hazardMapAuthor": "",
+        "royale": {
+          "shrinkEveryNTurns": 0
+        },
+        "squad": {
+          "allowBodyCollisions": false,
+          "sharedElimination": false,
+          "sharedHealth": false,
+          "sharedLength": false
+        }
+      }
+    },
+    "timeout": 500,
+    "map": "standard",
+    "source": "arena"
+  },
+  "turn": 114,
+  "board": {
+    "height": 11,
+    "width": 11,
+    "food": [
+      {
+        "x": 10,
+        "y": 3
+      },
+      {
+        "x": 5,
+        "y": 0
+      },
+      {
+        "x": 10,
+        "y": 8
+      },
+      {
+        "x": 6,
+        "y": 10
+      }
+    ],
+    "snakes": [
+      {
+        "id": "fa6a535e-d77a-4ebd-bb60-9f2a403e5645",
+        "name": "cassiopeia",
+        "health": 92,
+        "body": [
+          {
+            "x": 0,
+            "y": 6
+          },
+          {
+            "x": 0,
+            "y": 7
+          },
+          {
+            "x": 0,
+            "y": 8
+          },
+          {
+            "x": 0,
+            "y": 9
+          },
+          {
+            "x": 0,
+            "y": 10
+          },
+          {
+            "x": 1,
+            "y": 10
+          },
+          {
+            "x": 2,
+            "y": 10
+          },
+          {
+            "x": 3,
+            "y": 10
+          },
+          {
+            "x": 4,
+            "y": 10
+          },
+          {
+            "x": 4,
+            "y": 9
+          },
+          {
+            "x": 3,
+            "y": 9
+          }
+        ],
+        "head": {
+          "x": 0,
+          "y": 6
+        },
+        "length": 11,
+        "latency": "145",
+        "shout": "",
+        "squad": "",
+        "customizations": {
+          "color": "#f13232",
+          "head": "default",
+          "tail": "default"
+        }
+      },
+      {
+        "id": "fcc8a5a6-3c65-4bca-9937-377bf4fa9e57",
+        "name": "elizabeth2",
+        "health": 94,
+        "body": [
+          {
+            "x": 3,
+            "y": 5
+          },
+          {
+            "x": 4,
+            "y": 5
+          },
+          {
+            "x": 5,
+            "y": 5
+          },
+          {
+            "x": 6,
+            "y": 5
+          },
+          {
+            "x": 7,
+            "y": 5
+          },
+          {
+            "x": 7,
+            "y": 6
+          },
+          {
+            "x": 8,
+            "y": 6
+          },
+          {
+            "x": 8,
+            "y": 7
+          },
+          {
+            "x": 7,
+            "y": 7
+          },
+          {
+            "x": 6,
+            "y": 7
+          },
+          {
+            "x": 6,
+            "y": 6
+          },
+          {
+            "x": 5,
+            "y": 6
+          },
+          {
+            "x": 5,
+            "y": 7
+          }
+        ],
+        "head": {
+          "x": 3,
+          "y": 5
+        },
+        "length": 13,
+        "latency": "108",
+        "shout": "elizabeth2",
+        "squad": "",
+        "customizations": {
+          "color": "#b579ff",
+          "head": "default",
+          "tail": "default"
+        }
+      }
+    ],
+    "hazards": []
+  },
+  "you": {
+    "id": "fa6a535e-d77a-4ebd-bb60-9f2a403e5645",
+    "name": "cassiopeia",
+    "health": 92,
+    "body": [
+      {
+        "x": 0,
+        "y": 6
+      },
+      {
+        "x": 0,
+        "y": 7
+      },
+      {
+        "x": 0,
+        "y": 8
+      },
+      {
+        "x": 0,
+        "y": 9
+      },
+      {
+        "x": 0,
+        "y": 10
+      },
+      {
+        "x": 1,
+        "y": 10
+      },
+      {
+        "x": 2,
+        "y": 10
+      },
+      {
+        "x": 3,
+        "y": 10
+      },
+      {
+        "x": 4,
+        "y": 10
+      },
+      {
+        "x": 4,
+        "y": 9
+      },
+      {
+        "x": 3,
+        "y": 9
+      }
+    ],
+    "head": {
+      "x": 0,
+      "y": 6
+    },
+    "length": 11,
+    "latency": "145",
+    "shout": "",
+    "squad": "",
+    "customizations": {
+      "color": "#f13232",
+      "head": "default",
+      "tail": "default"
+    }
+  }
+}

@@ -15,7 +15,7 @@ Speed tricks (the moves chosen are exactly the same as brain_v6):
 import time
 
 TIME_LIMIT_MS = (
-    180  # thinking budget per move (was 100; raised after the v7 speed-up was verified)
+    130  # thinking budget per move (was 100; raised after the v7 speed-up was verified)
 )
 SAFETY = 0.85  # use at most this part of the budget, the rest is slack
 MAX_DEPTH = 40
@@ -171,13 +171,16 @@ def evaluate(me, opp, food, bd):
     # (it is still in opp_left), and the other way round. The heads are not free
     # squares, so neither head is counted; that leaves mine - theirs unchanged.
     my_head, opp_head = my_body[0], opp_body[0]
-    my_front, opp_front = bit[my_head], bit[opp_head]
+    my_seen, opp_seen = bit[my_head], bit[opp_head]  # everything each side reached
+    my_front, opp_front = my_seen, opp_seen
     my_left = opp_left = free  # free squares each side has not reached yet
     s = bd.stride
     mine = theirs = 0
     food_mine = food_any = None  # distance to nearest food I reach first / any food
+    n_me, n_opp = len(my_body), len(opp_body)
+    last = max(n_me, n_opp)  # by then both bodies have fully pulled back
     dist = 0
-    while my_front or opp_front:
+    while my_front or opp_front or dist < last:
         mine += (my_front & opp_left).bit_count()
         theirs += (opp_front & my_left).bit_count()
         if my_front & food:
@@ -185,15 +188,31 @@ def evaluate(me, opp, food, bd):
                 food_any = dist
             if food_mine is None and my_front & food & opp_left:
                 food_mine = dist
-        # Grow both areas by one step (shifts = right/left/up/down). A bit pushed off
-        # the board lands on the spare column or outside it, never on a free square.
-        f = my_front
+        dist += 1  # the squares found below are reached on turn `dist`
+        # c04: bodies pull back. Segment i of a length-n snake is gone after n - i
+        # turns, so on turn `dist` segment n - dist opens up (turn 1, the tail, is
+        # already free unless it just grew; a grown tail sits on segment n - 2 too).
+        if dist >= 2:
+            opened = 0
+            if n_me - dist >= 1:
+                opened |= bit[my_body[n_me - dist]]
+            if n_opp - dist >= 1:
+                opened |= bit[opp_body[n_opp - dist]]
+            if opened:
+                free |= opened
+                my_left |= opened
+                opp_left |= opened
+        # Grow both areas by one step (shifts = right/left/up/down), from everything
+        # reached so far, so a square that opens next to old area is found too. A bit
+        # pushed off the board lands on the spare column or outside, never on a free square.
+        f = my_seen
         my_front = ((f << 1) | (f >> 1) | (f << s) | (f >> s)) & my_left
         my_left ^= my_front
-        f = opp_front
+        my_seen |= my_front
+        f = opp_seen
         opp_front = ((f << 1) | (f >> 1) | (f << s) | (f >> s)) & opp_left
         opp_left ^= opp_front
-        dist += 1
+        opp_seen |= opp_front
 
     score = (mine - theirs) * W["territory"]
     my_len, opp_len = len(my_body), len(opp_body)

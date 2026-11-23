@@ -1,7 +1,6 @@
 *.DS_Store
 *.pyc
 __pycache__/
-lost_games_turns
 Dockerfile
 Dockerfile.cpython
 Dockerfile.pypy
