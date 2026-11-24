@@ -15,7 +15,7 @@ Speed tricks (the moves chosen are exactly the same as brain_v6):
 import time
 
 TIME_LIMIT_MS = (
-    180  # thinking budget per move (was 100; raised after the v7 speed-up was verified)
+    190  # thinking budget per move (was 100; raised after the v7 speed-up was verified)
 )
 SAFETY = 0.85  # use at most this part of the budget, the rest is slack
 MAX_DEPTH = 40
@@ -30,7 +30,7 @@ WEIGHTS = {
     "loss": -1_000_000,  # score for a lost position
     "draw": -500_000,  # both die: better than losing, much worse than surviving
     # Territory
-    "territory": 6,  # per square I reach first (minus squares they reach first)
+    "territory": 3,  # per square I reach first (minus squares they reach first)
     "trapped_me": 5000,  # penalty: my reachable space is smaller than my body
     "trapped_opp": 2000,  # bonus: their reachable space is smaller than their body
     # Food
