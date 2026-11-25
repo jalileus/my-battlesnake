@@ -1,0 +1,278 @@
+{
+  "game": {
+    "id": "26175222-3986-4b45-bfb5-5c78fdfe05d1",
+    "ruleset": {
+      "name": "standard",
+      "version": "v1.0.0",
+      "settings": {
+        "foodSpawnChance": 15,
+        "minimumFood": 1,
+        "hazardDamagePerTurn": 15,
+        "hazardMap": "",
+        "hazardMapAuthor": "",
+        "royale": {
+          "shrinkEveryNTurns": 0
+        },
+        "squad": {
+          "allowBodyCollisions": false,
+          "sharedElimination": false,
+          "sharedHealth": false,
+          "sharedLength": false
+        }
+      }
+    },
+    "timeout": 500,
+    "map": "standard",
+    "source": "arena"
+  },
+  "turn": 150,
+  "board": {
+    "height": 11,
+    "width": 11,
+    "food": [
+      {
+        "x": 9,
+        "y": 9
+      },
+      {
+        "x": 0,
+        "y": 10
+      }
+    ],
+    "snakes": [
+      {
+        "id": "01dda3b0-cf6e-48c2-9c0e-5536c4e2f9d5",
+        "name": "cassiopeia",
+        "health": 100,
+        "body": [
+          {
+            "x": 2,
+            "y": 10
+          },
+          {
+            "x": 3,
+            "y": 10
+          },
+          {
+            "x": 4,
+            "y": 10
+          },
+          {
+            "x": 4,
+            "y": 9
+          },
+          {
+            "x": 4,
+            "y": 8
+          },
+          {
+            "x": 4,
+            "y": 7
+          },
+          {
+            "x": 4,
+            "y": 6
+          },
+          {
+            "x": 4,
+            "y": 5
+          },
+          {
+            "x": 4,
+            "y": 4
+          },
+          {
+            "x": 4,
+            "y": 3
+          },
+          {
+            "x": 5,
+            "y": 3
+          },
+          {
+            "x": 5,
+            "y": 4
+          },
+          {
+            "x": 6,
+            "y": 4
+          },
+          {
+            "x": 6,
+            "y": 4
+          }
+        ],
+        "head": {
+          "x": 2,
+          "y": 10
+        },
+        "length": 14,
+        "latency": "119",
+        "shout": "",
+        "squad": "",
+        "customizations": {
+          "color": "#f13232",
+          "head": "default",
+          "tail": "default"
+        }
+      },
+      {
+        "id": "48eeebef-9b20-4fb4-9bf6-903014027d2a",
+        "name": "RREEMMII's Snake",
+        "health": 94,
+        "body": [
+          {
+            "x": 9,
+            "y": 5
+          },
+          {
+            "x": 10,
+            "y": 5
+          },
+          {
+            "x": 10,
+            "y": 4
+          },
+          {
+            "x": 9,
+            "y": 4
+          },
+          {
+            "x": 9,
+            "y": 3
+          },
+          {
+            "x": 9,
+            "y": 2
+          },
+          {
+            "x": 9,
+            "y": 1
+          },
+          {
+            "x": 8,
+            "y": 1
+          },
+          {
+            "x": 8,
+            "y": 2
+          },
+          {
+            "x": 8,
+            "y": 3
+          },
+          {
+            "x": 8,
+            "y": 4
+          },
+          {
+            "x": 7,
+            "y": 4
+          },
+          {
+            "x": 7,
+            "y": 5
+          },
+          {
+            "x": 7,
+            "y": 6
+          },
+          {
+            "x": 8,
+            "y": 6
+          }
+        ],
+        "head": {
+          "x": 9,
+          "y": 5
+        },
+        "length": 15,
+        "latency": "286",
+        "shout": "",
+        "squad": "",
+        "customizations": {
+          "color": "#bbddff",
+          "head": "gamer",
+          "tail": "curled"
+        }
+      }
+    ],
+    "hazards": []
+  },
+  "you": {
+    "id": "01dda3b0-cf6e-48c2-9c0e-5536c4e2f9d5",
+    "name": "cassiopeia",
+    "health": 100,
+    "body": [
+      {
+        "x": 2,
+        "y": 10
+      },
+      {
+        "x": 3,
+        "y": 10
+      },
+      {
+        "x": 4,
+        "y": 10
+      },
+      {
+        "x": 4,
+        "y": 9
+      },
+      {
+        "x": 4,
+        "y": 8
+      },
+      {
+        "x": 4,
+        "y": 7
+      },
+      {
+        "x": 4,
+        "y": 6
+      },
+      {
+        "x": 4,
+        "y": 5
+      },
+      {
+        "x": 4,
+        "y": 4
+      },
+      {
+        "x": 4,
+        "y": 3
+      },
+      {
+        "x": 5,
+        "y": 3
+      },
+      {
+        "x": 5,
+        "y": 4
+      },
+      {
+        "x": 6,
+        "y": 4
+      },
+      {
+        "x": 6,
+        "y": 4
+      }
+    ],
+    "head": {
+      "x": 2,
+      "y": 10
+    },
+    "length": 14,
+    "latency": "119",
+    "shout": "",
+    "squad": "",
+    "customizations": {
+      "color": "#f13232",
+      "head": "default",
+      "tail": "default"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "cassiopeia-js",
+  "version": "10.0.0",
+  "description": "Battlesnake duel brain (JS port of brain.py): minimax + alpha-beta, time-aware territory",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
