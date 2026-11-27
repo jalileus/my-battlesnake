@@ -73,8 +73,8 @@ const INFO = {
   apiversion: "1",
   author: "jalileus",
   color: "#f13232",
-  head: "Evil",
-  tail: "Bolt",
+  head: "evil",
+  tail: "cosmic-horror",
   version: "v10-js",
 };
 
