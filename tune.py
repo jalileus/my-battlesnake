@@ -4,10 +4,10 @@ Usage:
     python tune.py KEY VALUE1 VALUE2 ... [--games N] [--opponent NAME]
 
 Example:
-    python tune.py territory 5 10 15 --games 200 --opponent brain_v4
+    python tune.py territory 5 10 15 --games 200 --opponent old_python/brain_v4
 
 For each value, brain.WEIGHTS[KEY] is set in memory (brain.py is not edited),
-then N games are played against the opponent (default brain_v3) with the game
+then N games are played against the opponent (default old_python/brain_v3) with the game
 engine from simulate.py. Both snakes think for only TUNE_TIME_LIMIT_MS per move,
 and games run in parallel on all CPU cores.
 """
@@ -21,7 +21,7 @@ import sys
 import simulate
 
 DEFAULT_GAMES = 100
-DEFAULT_OPPONENT = "brain_v3"
+DEFAULT_OPPONENT = "old_python/brain_v3"
 TUNE_TIME_LIMIT_MS = 20
 
 HERE = os.path.dirname(os.path.abspath(__file__))

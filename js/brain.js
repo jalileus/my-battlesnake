@@ -16,7 +16,7 @@
 
 const { performance } = require("perf_hooks");
 
-let TIME_LIMIT_MS = 150; // thinking budget per move, counted from when the request arrived
+let TIME_LIMIT_MS = 220; // thinking budget per move, counted from when the request arrived
 const SAFETY = 0.85; // use at most this part of the budget, the rest is slack
 let MAX_DEPTH = 40;
 

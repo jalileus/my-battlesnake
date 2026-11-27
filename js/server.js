@@ -8,7 +8,7 @@
 // Searches run in worker threads (THREADS, default 3), so several games at once each
 // keep their own deadline.
 // Port: the PORT environment variable (Render sets it), default 8000.
-// Time limit: the TIME_LIMIT_MS environment variable, default 150.
+// Time limit: the TIME_LIMIT_MS environment variable, default 220.
 
 const http = require("http");
 const { Worker } = require("worker_threads");
